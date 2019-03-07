@@ -1,0 +1,99 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper0
+  labels:
+    run: zookeeper0
+spec:
+  selector:
+    name: zookeeper0
+  ports:
+  - name: client
+    port: 2181
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper1
+  labels:
+    run: zookeeper1
+spec:
+  selector:
+    name: zookeeper1
+  ports:
+  - protocol: TCP
+    name: client
+    targetPort: 2181
+    port: 2181
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper2
+  labels:
+    run: zookeeper2
+spec:
+  selector:
+    name: zookeeper2
+  ports:
+  - protocol: TCP
+    name: client
+    targetPort: 2181
+    port: 2181
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka0
+  labels:
+    run: kafka0
+spec:
+  selector:
+    name: kafka0
+  ports:
+  - protocol: TCP
+    targetPort: 9092
+    port: 9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka1
+  labels:
+    run: kafka1
+spec:
+  selector:
+    name: kafka1
+  ports:
+  - protocol: TCP
+    targetPort: 9092
+    port: 9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka2
+  labels:
+    run: kafka2
+spec:
+  selector:
+    name: kafka2
+  ports:
+  - protocol: TCP
+    targetPort: 9092
+    port: 9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka3
+  labels:
+    run: kafka3
+spec:
+  selector:
+    name: kafka3
+  ports:
+  - protocol: TCP
+    targetPort: 9092
+    port: 9092

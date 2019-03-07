@@ -1,0 +1,53 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper0
+spec:
+  selector:
+    name: zoo0
+  ports:
+  - port: 2888
+    name: peer
+  - port: 3888
+    name: leader-election
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper1
+spec:
+  selector:
+    name: zoo1
+  ports:
+  - port: 2888
+    name: peer
+  - port: 3888
+    name: leader-election
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper2
+spec:
+  selector:
+    name: zoo2
+  ports:
+  - port: 2888
+    name: peer
+  - port: 3888
+    name: leader-election
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+spec:
+  ports:
+  - port: 2181
+    name: client
+  selector:
+    app: zookeeper

@@ -1,0 +1,676 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: store1-ca
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: store1-ca
+    spec:
+      volumes:
+      - name: sharedvolume
+        persistentVolumeClaim:
+          claimName: shared-pvc
+      containers:
+      - name: ca
+        image: hyperledger/fabric-ca
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/status_configtxgen_complete ]; do echo Waiting for configtxgen; sleep 1; done; fabric-ca-server start -b admin:adminpw -d"]
+        env:
+        - name: FABRIC_CA_SERVER_CA_NAME
+          value: "Store1CA"
+        - name: FABRIC_CA_SERVER_CA_CERTFILE
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/ca/ca.store1.mymarket.com-cert.pem
+        - name: FABRIC_CA_SERVER_CA_KEYFILE
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/ca/key.pem
+        - name: FABRIC_CA_SERVER_DEBUG
+          value: "true"
+        - name: FABRIC_CA_SERVER_TLS_CERTFILE
+          value: /certs/ca0a-cert.pem
+        - name: FABRIC_CA_SERVER_TLS_KEYFILE
+          value: /certs/ca0a-key.pem
+        - name: GODEBUG
+          value: "netdns=go"
+        volumeMounts:
+        - mountPath: /shared
+          name: sharedvolume
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: store2-ca
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: store2-ca
+    spec:
+      volumes:
+      - name: sharedvolume
+        persistentVolumeClaim:
+          claimName: shared-pvc
+      containers:
+      - name: ca
+        image: hyperledger/fabric-ca
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/status_configtxgen_complete ]; do echo Waiting for configtxgen; sleep 1; done; fabric-ca-server start -b admin:adminpw -d"]
+        env:
+        - name: FABRIC_CA_SERVER_CA_NAME
+          value: "Store2CA"
+        - name: FABRIC_CA_SERVER_CA_CERTFILE
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/ca/ca.store2.mymarket.com-cert.pem
+        - name: FABRIC_CA_SERVER_CA_KEYFILE
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/ca/key.pem
+        - name: FABRIC_CA_SERVER_DEBUG
+          value: "true"
+        - name: FABRIC_CA_SERVER_TLS_CERTFILE
+          value: /certs/ca0a-cert.pem
+        - name: FABRIC_CA_SERVER_TLS_KEYFILE
+          value: /certs/ca0a-key.pem
+        - name: GODEBUG
+          value: "netdns=go"
+        volumeMounts:
+        - mountPath: /shared
+          name: sharedvolume
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mymarket-ca
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: mymarket-ca
+    spec:
+      volumes:
+      - name: sharedvolume
+        persistentVolumeClaim:
+          claimName: shared-pvc
+      containers:
+      - name: ca
+        image: hyperledger/fabric-ca
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/status_configtxgen_complete ]; do echo Waiting for configtxgen; sleep 1; done; fabric-ca-server start -b admin:adminpw -d"]
+        env:
+        - name: FABRIC_CA_SERVER_CA_NAME
+          value: "HQCA"
+        - name: FABRIC_CA_SERVER_CA_CERTFILE
+          value: /shared/crypto-config/ordererOrganizations/mymarket.com/ca/ca.mymarket.com-cert.pem
+        - name: FABRIC_CA_SERVER_CA_KEYFILE
+          value: /shared/crypto-config/ordererOrganizations/mymarket.com/ca/key.pem
+        - name: FABRIC_CA_SERVER_DEBUG
+          value: "true"
+        - name: FABRIC_CA_SERVER_TLS_CERTFILE
+          value: /certs/ca0a-cert.pem
+        - name: FABRIC_CA_SERVER_TLS_KEYFILE
+          value: /certs/ca0a-key.pem
+        - name: GODEBUG
+          value: "netdns=go"
+        volumeMounts:
+        - mountPath: /shared
+          name: sharedvolume
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: zoo0
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: zoo0
+        app: zookeeper
+    spec:
+      containers:
+      - name: zoo0
+        image: hyperledger/fabric-zookeeper
+        env:
+        - name: ZOO_MY_ID
+          value: "1"
+        - name: ZOO_SERVERS
+          value: "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+        ports:
+        - containerPort: 2181
+          name: client
+        - containerPort: 2888
+          name: peer
+        - containerPort: 3888
+          name: leader-election
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: zoo1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: zoo1
+        app: zookeeper
+    spec:
+      containers:
+      - name: zoo1
+        image: hyperledger/fabric-zookeeper
+        env:
+        - name: ZOO_MY_ID
+          value: "2"
+        - name: ZOO_SERVERS
+          value: "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+        ports:
+        - containerPort: 2181
+          name: client
+        - containerPort: 2888
+          name: peer
+        - containerPort: 3888
+          name: leader-election
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: zoo2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: zoo2
+        app: zookeeper
+    spec:
+      containers:
+      - name: zoo2
+        image: hyperledger/fabric-zookeeper
+        env:
+        - name: ZOO_MY_ID
+          value: "3"
+        - name: ZOO_SERVERS
+          value: "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+        ports:
+        - containerPort: 2181
+          name: client
+        - containerPort: 2888
+          name: peer
+        - containerPort: 3888
+          name: leader-election
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kafka0
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: kafka0
+    spec:
+      containers:
+      - name: kafka0
+        image: hyperledger/fabric-kafka
+        env:
+        - name: KAFKA_BROKER_ID
+          value: "0"
+        - name: KAFKA_MIN_INSYNC_REPLICAS
+          value: "2"
+        - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: "zookeeper:2181"
+        - name: KAFKA_MESSAGE_MAX_BYTES
+          value: "103809024"
+        - name: KAFKA_REPLICA_FETCH_MAX_BYTES
+          value: "103809024"
+        - name: KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE
+          value: "false"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kafka1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: kafka1
+    spec:
+      containers:
+      - name: kafka1
+        image: hyperledger/fabric-kafka
+        env:
+        - name: KAFKA_BROKER_ID
+          value: "1"
+        - name: KAFKA_MIN_INSYNC_REPLICAS
+          value: "2"
+        - name: KAFKA_DEFAULT-REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: "zookeeper:2181"
+        - name: KAFKA_MESSAGE_MAX_BYTES
+          value: "103809024"
+        - name: KAFKA_REPLICA_FETCH_MAX_BYTES
+          value: "103809024"
+        - name: KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE
+          value: "false"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kafka2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: kafka2
+    spec:
+      containers:
+      - name: kafka2
+        image: hyperledger/fabric-kafka
+        env:
+        - name: KAFKA_BROKER_ID
+          value: "2"
+        - name: KAFKA_MIN_INSYNC_REPLICAS
+          value: "2"
+        - name: KAFKA_DEFAULT-REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: "zookeeper:2181"
+        - name: KAFKA_MESSAGE_MAX_BYTES
+          value: "103809024"
+        - name: KAFKA_REPLICA_FETCH_MAX_BYTES
+          value: "103809024"
+        - name: KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE
+          value: "false"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kafka3
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: kafka3
+    spec:
+      containers:
+      - name: kafka3
+        image: hyperledger/fabric-kafka
+        env:
+        - name: KAFKA_BROKER_ID
+          value: "3"
+        - name: KAFKA_MIN_INSYNC_REPLICAS
+          value: "2"
+        - name: KAFKA_DEFAULT-REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: "zookeeper:2181"
+        - name: KAFKA_MESSAGE_MAX_BYTES
+          value: "103809024"
+        - name: KAFKA_REPLICA_FETCH_MAX_BYTES
+          value: "103809024"
+        - name: KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE
+          value: "false"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: orderer0
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: orderer0
+    spec:
+      volumes:
+      - name: sharedvolume
+        persistentVolumeClaim:
+          claimName: shared-pvc
+      containers:
+      - name: orderer0
+        image: hyperledger/fabric-orderer
+        command: ["sh", "-c", "sleep 5 && while [ ! -f /shared/status_configtxgen_complete ]; do echo Waiting for configtxgen; sleep 1; done; orderer"]
+        env:
+        - name: ORDERER_CFG_PATH
+          value: /shared/
+        - name: ORDERER_GENERAL_LEDGERTYPE
+          value: file
+        - name: ORDERER_FILELEDGER_LOCATION
+          value: /shared/ledger/orderer
+        - name: ORDERER_GENERAL_LISTENADDRESS
+          value: 0.0.0.0
+        - name: ORDERER_GENERAL_LISTENPORT
+          value: "31010"
+        - name: ORDERER_KAFKA_RETRY_SHORTINTERVAL
+          value: 1s
+        - name: ORDERER_KAFKA_RETRY_SHORTTOTAL
+          value: 30s
+        - name: FABRIC_LOGGING_SPEC
+          value: debug
+        - name: ORDERER_GENERAL_GENESISMETHOD
+          value: file
+        - name: ORDERER_GENERAL_GENESISFILE
+          value: /shared/genesis.block
+        - name: ORDERER_GENERAL_TLS_ENABLED
+          value: "true"
+        - name: ORDERER_GENERAL_LOCALMSPID
+          value: HeadquaterMSP
+        - name: ORDERER_GENERAL_LOCALMSPDIR
+          value: /shared/crypto-config/ordererOrganizations/mymarket.com/orderers/orderer0.mymarket.com/msp
+        - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+          value: /shared/crypto-config/ordererOrganizations/mymarket.com/orderers/orderer0.mymarket.com/tls/server.key 
+        - name: ORDERER_GENERAL_TLS_CERTIFICATE
+          value: /shared/crypto-config/ordererOrganizations/mymarket.com/orderers/orderer0.mymarket.com/tls/server.crt 
+        - name: ORDERER_GENERAL_TLS_ROOTCAS
+          value: "[/shared/crypto-config/ordererOrganizations/mymarket.com/orderers/orderer0.mymarket.com/tls/ca.crt]" 
+        - name: GODEBUG
+          value: "netdns=go"
+        volumeMounts:
+        - mountPath: /shared
+          name: sharedvolume
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: store1peer0
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: store1peer0
+    spec:
+      volumes:
+      - name: sharedvolume
+        persistentVolumeClaim:
+          claimName: shared-pvc
+      - name: dockersocket
+        hostPath:
+          path: /var/run/docker.sock
+      containers:
+      - name: store1peer0
+        image: hyperledger/fabric-peer
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/status_configtxgen_complete ]; do echo Waiting for configtxgen; sleep 1; done; peer node start"]
+        env:
+        - name: CORE_PEER_ADDRESSAUTODETECT
+          value: "true"
+        - name: CORE_PEER_NETWORKID
+          value: dev
+        - name: CORE_PEER_ID
+          value: store1peer0
+        - name: CORE_PEER_ADDRESS
+          value: store1peer0:30110
+        - name: CORE_PEER_LISTENADDRESS
+          value: 0.0.0.0:30110
+        - name: CORE_PEER_GOSSIP_BOOTSTRAP
+          value: store1peer1:30120
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false"
+        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
+          value: "true"
+        - name: CORE_PEER_COMMITTER_ENABLED
+          value: "true"
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true"
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_PEER_LOCALMSPID
+          value: Store1MSP
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/peers/peer0.store1.mymarket.com/msp/
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/peers/peer0.store1.mymarket.com/tls/server.crt
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/peers/peer0.store1.mymarket.com/tls/server.key
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/peers/peer0.store1.mymarket.com/tls/ca.crt
+        - name: FABRIC_LOGGING_SPEC
+          value: debug
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true"
+        - name: CORE_LEDGER_STATE_STATEDATABASE
+          value: goleveldb
+        - name: FABRIC_CFG_PATH
+          value: /etc/hyperledger/fabric/
+        - name: ORDERER_URL
+          value: orderer0:31010
+        - name: GODEBUG
+          value: "netdns=go"
+        - name: CORE_VM_DOCKER_ATTACHSTDOUT
+          value: "true"
+        volumeMounts:
+        - mountPath: /shared
+          name: sharedvolume
+        - mountPath: /host/var/run/docker.sock
+          name: dockersocket
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: store1peer1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: store1peer1
+    spec:
+      volumes:
+      - name: sharedvolume
+        persistentVolumeClaim:
+          claimName: shared-pvc
+      - name: dockersocket
+        hostPath:
+          path: /var/run/docker.sock
+      containers:
+      - name: store1peer1
+        image: hyperledger/fabric-peer
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/status_configtxgen_complete ]; do echo Waiting for configtxgen; sleep 1; done; peer node start"]
+        env:
+        - name: CORE_PEER_ADDRESSAUTODETECT
+          value: "true"
+        - name: CORE_PEER_NETWORKID
+          value: dev
+        - name: CORE_PEER_ID
+          value: store1peer1
+        - name: CORE_PEER_ADDRESS
+          value: store1peer1:30120
+        - name: CORE_PEER_LISTENADDRESS
+          value: 0.0.0.0:30120
+        - name: CORE_PEER_GOSSIP_BOOTSTRAP
+          value: store1peer0:30110
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false"
+        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
+          value: "true"
+        - name: CORE_PEER_COMMITTER_ENABLED
+          value: "true"
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true"
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_PEER_LOCALMSPID
+          value: Store1MSP
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/peers/peer1.store1.mymarket.com/msp/
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/peers/peer1.store1.mymarket.com/tls/server.crt
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/peers/peer1.store1.mymarket.com/tls/server.key
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: /shared/crypto-config/peerOrganizations/store1.mymarket.com/peers/peer1.store1.mymarket.com/tls/ca.crt
+        - name: FABRIC_LOGGING_SPEC
+          value: debug
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true"
+        - name: CORE_LEDGER_STATE_STATEDATABASE
+          value: goleveldb
+        - name: FABRIC_CFG_PATH
+          value: /etc/hyperledger/fabric/
+        - name: ORDERER_URL
+          value: orderer0:31010
+        - name: GODEBUG
+          value: "netdns=go"
+        - name: CORE_VM_DOCKER_ATTACHSTDOUT
+          value: "true"
+        volumeMounts:
+        - mountPath: /shared
+          name: sharedvolume
+        - mountPath: /host/var/run/docker.sock
+          name: dockersocket
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: store2peer0
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: store2peer0
+    spec:
+      volumes:
+      - name: sharedvolume
+        persistentVolumeClaim:
+          claimName: shared-pvc
+      - name: dockersocket
+        hostPath:
+          path: /var/run/docker.sock
+      containers:
+      - name: store2peer0
+        image: hyperledger/fabric-peer
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/status_configtxgen_complete ]; do echo Waiting for configtxgen; sleep 1; done; peer node start"]
+        env:
+        - name: CORE_PEER_ADDRESSAUTODETECT
+          value: "true"
+        - name: CORE_PEER_NETWORKID
+          value: dev
+        - name: CORE_PEER_ID
+          value: store2peer0
+        - name: CORE_PEER_ADDRESS
+          value: store2peer0:30210
+        - name: CORE_PEER_LISTENADDRESS
+          value: 0.0.0.0:30210
+        - name: CORE_PEER_GOSSIP_BOOTSTRAP
+          value: store2peer1:30220
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false"
+        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
+          value: "true"
+        - name: CORE_PEER_COMMITTER_ENABLED
+          value: "true"
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true"
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_PEER_LOCALMSPID
+          value: Store2MSP
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/peers/peer0.store2.mymarket.com/msp/
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/peers/peer0.store2.mymarket.com/tls/server.crt
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/peers/peer0.store2.mymarket.com/tls/server.key
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/peers/peer0.store2.mymarket.com/tls/ca.crt
+        - name: FABRIC_LOGGING_SPEC
+          value: debug
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true"
+        - name: CORE_LEDGER_STATE_STATEDATABASE
+          value: goleveldb
+        - name: FABRIC_CFG_PATH
+          value: /etc/hyperledger/fabric/
+        - name: ORDERER_URL
+          value: orderer0:31010
+        - name: GODEBUG
+          value: "netdns=go"
+        - name: CORE_VM_DOCKER_ATTACHSTDOUT
+          value: "true"
+        volumeMounts:
+        - mountPath: /shared
+          name: sharedvolume
+        - mountPath: /host/var/run/docker.sock
+          name: dockersocket
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: store2peer1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: store2peer1
+    spec:
+      volumes:
+      - name: sharedvolume
+        persistentVolumeClaim:
+          claimName: shared-pvc
+      - name: dockersocket
+        hostPath:
+          path: /var/run/docker.sock
+      containers:
+      - name: store2peer1
+        image: hyperledger/fabric-peer
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/status_configtxgen_complete ]; do echo Waiting for configtxgen; sleep 1; done; peer node start"]
+        env:
+        - name: CORE_PEER_ADDRESSAUTODETECT
+          value: "true"
+        - name: CORE_PEER_NETWORKID
+          value: dev
+        - name: CORE_PEER_ID
+          value: store2peer1
+        - name: CORE_PEER_ADDRESS
+          value: store2peer1:30220
+        - name: CORE_PEER_LISTENADDRESS
+          value: 0.0.0.0:30220
+        - name: CORE_PEER_GOSSIP_BOOTSTRAP
+          value: store2peer0:30210
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false"
+        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
+          value: "true"
+        - name: CORE_PEER_COMMITTER_ENABLED
+          value: "true"
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true"
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_PEER_LOCALMSPID
+          value: Store2MSP
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/peers/peer1.store2.mymarket.com/msp/
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/peers/peer1.store2.mymarket.com/tls/server.crt
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/peers/peer1.store2.mymarket.com/tls/server.key
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: /shared/crypto-config/peerOrganizations/store2.mymarket.com/peers/peer1.store2.mymarket.com/tls/ca.crt
+        - name: FABRIC_LOGGING_SPEC
+          value: debug
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true"
+        - name: CORE_LEDGER_STATE_STATEDATABASE
+          value: goleveldb
+        - name: FABRIC_CFG_PATH
+          value: /etc/hyperledger/fabric/
+        - name: ORDERER_URL
+          value: orderer0:31010
+        - name: GODEBUG
+          value: "netdns=go"
+        - name: CORE_VM_DOCKER_ATTACHSTDOUT
+          value: "true"
+        volumeMounts:
+        - mountPath: /shared
+          name: sharedvolume
+        - mountPath: /host/var/run/docker.sock
+          name: dockersocket
