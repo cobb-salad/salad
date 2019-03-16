@@ -11,5 +11,7 @@ set -e
 [ -z "$ID_OFFSET" ] && ID_OFFSET=1
 export ZOOKEEPER_SERVER_ID=$((${HOSTNAME##*-} + $ID_OFFSET ))
 echo "${ZOOKEEPER_SERVER_ID:-1}" | tee ${ZOO_DATA_DIR}/myid
+cp /etc/kafka/* ${ZOO_CONF_DIR}/
+sed -i "s/server\.$ZOOKEEPER_SERVER_ID\=[a-z0-9.-]*/server.$ZOOKEEPER_SERVER_ID=0.0.0.0/" ${ZOO_CONF_DIR}/zoo.cfg
 
 exec "$@"

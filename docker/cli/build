@@ -1,0 +1,7 @@
+#!/bin/sh
+
+IMAGENAME=mjkong/cli
+DATE=`date +"%Y.%m.%d"`
+
+docker build -t $IMAGENAME:$DATE .
+docker push $IMAGENAME:$DATE

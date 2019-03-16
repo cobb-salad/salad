@@ -7,7 +7,7 @@ spec:
     matchLabels:
       app: zookeeper
   serviceName: "zoo"
-  replicas: 1
+  replicas: 3
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: Parallel
@@ -20,7 +20,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: zookeeper
-        image: mjkong/zookeeper:2019.02.26
+        image: mjkong/zookeeper:2019.03.16
         env:
         - name: KAFKA_LOG4J_OPTS
           value: -Dlog4j.configuration=file:/conf/log4j.properties
@@ -45,13 +45,23 @@ spec:
             - '[ "imok" = "$(echo ruok | nc -w 1 127.0.0.1 2181)" ]'
         volumeMounts:
         - name: configmap
-          mountPath: /conf
+          mountPath: /etc/kafka
         - name: sharedvolume
           mountPath: /data
       volumes:
       - name: configmap
         configMap:
           name: zookeeper-config
-      - name: sharedvolume
-        persistentVolumeClaim:
-          claimName: shared-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: sharedvolume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      #storageClassName: kafka-broker
+      selector:
+        matchLabels:
+          app-role: pv
+          app-type: zk
+      resources:
+        requests:
+          storage: 3Gi

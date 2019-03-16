@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cli
+  labels:
+    app: cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cli
+  template:
+    metadata:
+      labels:
+        app: cli
+    spec:
+      containers:
+      - name: cli
+        image: #imagename#

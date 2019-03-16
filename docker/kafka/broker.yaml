@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+spec:
+  selector:
+    matchLabels:
+      app: kafka
+  serviceName: "broker"
+  replicas: 3
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app: kafka
+      annotations:
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: broker
+        image: mjkong/kafka:2019.03.16
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KAFKA_LOG4J_OPTS
+          value: -Dlog4j.configuration=file:/etc/kafka/log4j.properties
+        - name: JMX_PORT
+          value: "5555"
+        ports:
+        - containerPort: 9092
+          name: inside
+        - containerPort: 9094
+          name: outside
+        - containerPort: 5555
+          name: jmx
+        resources:
+          requests:
+            cpu: 10m
+            memory: 100Mi
+          limits:
+            memory: 600Mi
+        readinessProbe:
+          tcpSocket:
+            port: 9092
+        volumeMounts:
+        - name: configmap
+          mountPath: /conf
+        - name: sharedvolume
+          mountPath: /data
+      volumes:
+      - name: configmap
+        configMap:
+          name: broker-config
+  volumeClaimTemplates:
+  - metadata:
+      name: sharedvolume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      #storageClassName: kafka-broker
+      selector:
+        matchLabels:
+          app-role: pv
+          app-type: bk
+      resources:
+        requests:
+          storage: 5Gi
