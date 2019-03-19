@@ -2,3 +2,7 @@
 .DS_Store
 .project
 *.bak
+build/
+out/
+.idea/
+.gradle/
