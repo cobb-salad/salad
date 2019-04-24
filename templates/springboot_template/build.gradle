@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.1.3.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.6.RELEASE'
+}
+
+group 'org.mjkong'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    customProvidedRuntime
+}
+
+dependencies {
+    customProvidedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
+    compile "org.springframework.boot:spring-boot-starter-web"
+}
+
+
+jar {
+    enabled = true
+}
+
+bootJar {
+    classifier = 'boot'
+    mainClassName = 'org.mjkong.springboot.sample.Example'
+}
